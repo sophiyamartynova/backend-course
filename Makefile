@@ -1,7 +1,10 @@
 test:
-	go build -o server server.go
-	go build -o client client.go
-	./server &
-	sleep 2
-	./client
-	pkill -f server
+	@for test in hw0-backend_files/*; do \
+		if [ -f "$$test" ]; then \
+			echo "=================================="; \
+			echo "Запуск $$(basename $$test)..."; \
+			echo "=================================="; \
+			./$$test; \
+			echo ""; \
+		fi \
+	done

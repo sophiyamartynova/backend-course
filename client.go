@@ -2,28 +2,46 @@ package main
 
 import (
     "fmt"
-    "io/ioutil"
     "log"
     "net"
+    "os"
+    "time"
+)
+
+const (
+    HOST = "localhost"
+    PORT = "8080"
+    TYPE = "tcp"
 )
 
 func main() {
-    // подключение к серверу
-    conn, err := net.Dial("tcp", "localhost:8080")
+    // таймаут на подключение
+    conn, err := net.DialTimeout(TYPE, HOST+":"+PORT, 5*time.Second)
     if err != nil {
         log.Fatal("Ошибка ", err)
     }
     defer conn.Close()
     
-    // чтение ответа
-    response, err := ioutil.ReadAll(conn)
+    // ответ с таймаутом
+    conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+    
+    buffer := make([]byte, 1024)
+    n, err := conn.Read(buffer)
+    
     if err != nil {
         log.Fatal("Ошибка ", err)
     }
     
-    // Проверяем, что получено "OK\n"
+    response := string(buffer[:n])
+    
+    // проверяем, что получено "OK\n"
     expected := "OK\n"
-    if string(response) !== expected {
-        fmt.Println("Ошибка, получено:", string(response))
+    if response == expected {
+        fmt.Println("Успех")
+        os.Exit(0)
+    } else {
+        fmt.Printf("Ошибка, получено: %q\n", 
+                   expected, response)
+        os.Exit(1)
     }
 }
